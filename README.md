@@ -5,6 +5,7 @@ This repository is dedicated to the study of software architecture through a ser
 ## Checklist
 
 - [x] Lab 1: Початок роботи з Node.JS. Пакетний менеджер npm. Фреймворк Express. Пакети для тестування Jest та Supertest.
+- [x] Lab 2: Конвеєр обробки запиту та middleware. Відправлення відповіді. Маршрутизація. Переадресація.
 
 ## Progress Checklist
 
