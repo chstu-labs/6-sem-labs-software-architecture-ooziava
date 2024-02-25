@@ -1,12 +1,11 @@
-const express = require("express");
-const app = express();
+const app = require("express")();
 const message = process.env.MESSAGE || "Hello World!";
 
-app.get("/", (req, res) => {
+app.get("/", (_req, res) => {
   res.send(message);
 });
 
-app.use("/test", (req, res) => {
+app.get("/test", (_req, res) => {
   res.send({ message });
 });
 
