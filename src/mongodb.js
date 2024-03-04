@@ -1,7 +1,7 @@
 const { UserModel } = require("./schemes");
 const mongoose = require("mongoose");
 
-const uri = "mongodb://localhost:27017";
+const uri = `mongodb://${process.env.MONGODB_HOST}:${process.env.MONGODB_PORT}/${process.env.MONGODB_DB}`;
 
 async function connectToMongo() {
   try {
