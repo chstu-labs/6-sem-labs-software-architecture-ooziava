@@ -1,11 +1,11 @@
-const { MongoClient, ObjectId } = require("mongodb");
+const { UserModel } = require("./schemes");
+const mongoose = require("mongoose");
 
 const uri = "mongodb://localhost:27017";
-const client = new MongoClient(uri);
 
 async function connectToMongo() {
   try {
-    await client.connect();
+    await mongoose.connect(uri);
     console.log("Connected to MongoDB");
   } catch (error) {
     console.error("Error connecting to MongoDB:", error);
@@ -15,7 +15,7 @@ async function connectToMongo() {
 
 async function closeMongo() {
   try {
-    await client.close();
+    await mongoose.close();
     console.log("MongoDB connection closed.");
   } catch (error) {
     console.error("Error closing MongoDB connection:", error);
@@ -24,71 +24,38 @@ async function closeMongo() {
 }
 
 async function getUser(query) {
-  const database = client.db("swat-lab3");
-  const collection = database.collection("users");
-  const user = await collection.findOne(query);
+  const user = await UserModel.findOne(query);
+  if (!user) throw new Error("User not found");
   return user;
 }
 
 async function insertUser(user) {
-  const database = client.db("swat-lab3");
-  const collection = database.collection("users");
-  const result = await collection.insertOne(user);
+  const newUser = new UserModel(user);
+  const result = await newUser.save();
   return result;
 }
 
 async function updateUser(query, update) {
-  if (update?._id) {
-    delete update._id;
-  } else if (query?._id) {
-    query._id = ObjectId.createFromHexString(query._id);
-  }
-
-  const database = client.db("swat-lab3");
-  const collection = database.collection("users");
-  const result = await collection.updateOne(query, {
-    $set: update,
-  });
-
+  const result = await UserModel.updateOne(query, update);
+  if (result.nModified === 0) throw new Error("User not found");
   return result;
 }
 
 async function deleteUser(query) {
-  if (query?._id) {
-    query._id = ObjectId.createFromHexString(query._id);
-  }
-
-  const database = client.db("swat-lab3");
-  const collection = database.collection("users");
-  const result = await collection.deleteOne(query);
-  if (result.deletedCount === 0) {
-    throw new Error("User not found");
-  }
-
+  const result = await UserModel.deleteOne(query);
+  if (result.deletedCount === 0) throw new Error("User not found");
   return result;
 }
 
 async function getUsers(query) {
-  if (query?._id) {
-    query._id = ObjectId.createFromHexString(query._id);
-  }
-
-  const database = client.db("swat-lab3");
-  const collection = database.collection("users");
-  const users = await collection.find(query).toArray();
-  return users;
+  return await UserModel.find(query);
 }
 
-async function bulkDeleteUsers(ids) {
+async function deleteUsers(ids) {
   if (!ids?.length) throw new Error("No IDs provided");
+  const result = await UserModel.deleteMany({ _id: { $in: ids } });
 
-  const database = client.db("swat-lab3");
-  const collection = database.collection("users");
-  const result = await collection.deleteMany({
-    _id: {
-      $in: ids.map((id) => ObjectId.createFromHexString(id)),
-    },
-  });
+  if (result.deletedCount === 0) throw new Error("Users not found");
   return result;
 }
 
@@ -100,5 +67,5 @@ module.exports = {
   updateUser,
   deleteUser,
   getUsers,
-  deleteUsers: bulkDeleteUsers,
+  deleteUsers,
 };

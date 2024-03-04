@@ -1,3 +1,4 @@
+require("./schemes");
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
@@ -22,6 +23,7 @@ if (host === localhost) {
   app.use(cors());
   console.log("CORS enabled");
 }
+
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.use(express.static("public"));

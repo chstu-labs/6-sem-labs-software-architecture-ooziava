@@ -148,9 +148,10 @@
       // Function to make a row editable
       const makeRowEditable = (id) => {
         const row = document.querySelector(`tr[data-id="${id}"]`);
-        const name = row.children[0].textContent;
-        const age = row.children[1].textContent;
+        const name = row.children[2].textContent;
+        const age = row.children[3].textContent;
         row.innerHTML = `
+          <td></td>
           <td></td>
           <td><input type="text" value="${name}" /></td>
           <td><input type="number" value="${age}" /></td>
@@ -164,8 +165,8 @@
       // Function to update a user
       const updateUser = async (id) => {
         const row = document.querySelector(`tr[data-id="${id}"]`);
-        const name = row.children[0].children[0].value;
-        const age = row.children[1].children[0].value;
+        const name = row.children[2].children[0].value;
+        const age = row.children[3].children[0].value;
 
         try {
           await axios.put(`/api/users/${id}`, { name, age });
