@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MongoDB Methods Test</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+
+    <style>
+      body {
+        font-family: "Roboto", sans-serif;
+        font-weight: 400;
+        font-style: normal;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>MongoDB Methods Test</h1>
+
+    <!-- Form for adding a new user -->
+    <h2>Add New User</h2>
+    <form id="add-user-form" onsubmit="addUser(event)">
+      <label for="name">Name:</label>
+      <input type="text" id="name" name="name" required />
+      <label for="age">Age:</label>
+      <input type="number" id="age" name="age" required />
+      <button type="submit">Add User</button>
+    </form>
+
+    <!-- Table for displaying all users -->
+    <div style="display: flex; align-items: center; gap: 5px">
+      <h3>Users</h3>
+      <button
+        type="button"
+        id="delete-users"
+        style="display: none"
+        onclick="deleteSelectedUsers()"
+      >
+        Delete selected
+      </button>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>
+            <input
+              type="checkbox"
+              name="select-all"
+              id="select-all"
+              onchange="selectAllUsers()"
+            />
+          </th>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Age</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="users">
+        <!-- Users will be added here -->
+      </tbody>
+    </table>
+
+    <script>
+      const form = document.getElementById("add-user-form");
+      const usersTable = document.getElementById("users");
+
+      // Function to get all users
+      const getUsers = async () => {
+        try {
+          const response = await axios.get("/api/users");
+          const users = response.data;
+          console.log(users);
+
+          usersTable.innerHTML = "";
+          users.forEach((user) => {
+            usersTable.innerHTML += `
+                <tr data-id="${user._id}">
+                  <td><input type="checkbox" name="select-user" onchange="showDeleteButton()" /></td>
+                  <td>${user._id}</td>
+                  <td>${user.name}</td>
+                  <td>${user.age}</td>
+                  <td>
+                    <button onclick="deleteUser('${user._id}')">Delete</button>
+                    <button onclick="makeRowEditable('${user._id}')">Update</button>
+                  </td>
+                </tr>
+              `;
+          });
+          const deleteButton = document.getElementById("delete-users");
+          const selectAll = document.getElementById("select-all");
+          deleteButton.style.display = "none";
+          selectAll.checked = false;
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      // Function to add a new user
+      const addUser = async (event) => {
+        event.preventDefault();
+        const name = event.target.name.value;
+        const age = event.target.age.value;
+
+        try {
+          const response = await axios.post("/api/users", { name, age });
+          const user = response.data;
+          await getUsers();
+          event.target.reset();
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      // Function to delete a user
+      const deleteUser = async (id) => {
+        try {
+          const response = await axios.delete(`/api/users/${id}`);
+          await getUsers();
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      // Function to delete selected users
+      const deleteSelectedUsers = async () => {
+        const selectUser = document.getElementsByName("select-user");
+        const ids = [];
+        selectUser.forEach((user) => {
+          if (user.checked) {
+            ids.push(user.parentElement.parentElement.dataset.id);
+          }
+        });
+        try {
+          await axios.delete(`/api/users`, { data: { ids } });
+          await getUsers();
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      // Function to make a row editable
+      const makeRowEditable = (id) => {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        const name = row.children[0].textContent;
+        const age = row.children[1].textContent;
+        row.innerHTML = `
+          <td></td>
+          <td><input type="text" value="${name}" /></td>
+          <td><input type="number" value="${age}" /></td>
+          <td>
+            <button onclick="updateUser('${id}')">Save</button>
+            <button onclick="getUsers()">Cancel</button>
+          </td>
+        `;
+      };
+
+      // Function to update a user
+      const updateUser = async (id) => {
+        const row = document.querySelector(`tr[data-id="${id}"]`);
+        const name = row.children[0].children[0].value;
+        const age = row.children[1].children[0].value;
+
+        try {
+          await axios.put(`/api/users/${id}`, { name, age });
+          await getUsers();
+        } catch (error) {
+          console.error(error);
+        }
+      };
+
+      // Function to select all users
+      const selectAllUsers = () => {
+        const selectAll = document.getElementById("select-all");
+        const selectUser = document.getElementsByName("select-user");
+        const deleteButton = document.getElementById("delete-users");
+
+        selectUser.forEach((user) => {
+          user.checked = selectAll.checked;
+        });
+        deleteButton.style.display = selectAll.checked ? "block" : "none";
+      };
+
+      // Fuction to show button to delete selected users
+      const showDeleteButton = () => {
+        const selectUser = document.getElementsByName("select-user");
+        const deleteButton = document.getElementById("delete-users");
+        const selectAll = document.getElementById("select-all");
+
+        let checked = false;
+        let allChecked = true;
+
+        selectUser.forEach((user) =>
+          user.checked ? (checked = true) : (allChecked = false)
+        );
+
+        deleteButton.style.display = checked ? "block" : "none";
+        selectAll.checked = allChecked;
+      };
+
+      getUsers();
+    </script>
+  </body>
+</html>
