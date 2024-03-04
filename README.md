@@ -8,3 +8,4 @@ This repository is dedicated to the study of software architecture through a ser
 - [x] Lab 2: Конвеєр обробки запиту та middleware. Відправлення відповіді. Маршрутизація. Переадресація.
 - [x] Lab 3: Node.js та MongoDB.
 - [x] Lab 4: Mongoose.
+- [x] Lab 5: Використання Docker, для розгортання додатку Node.JS.
